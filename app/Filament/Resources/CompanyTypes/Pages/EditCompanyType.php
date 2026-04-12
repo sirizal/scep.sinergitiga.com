@@ -1,0 +1,23 @@
+<?php
+
+namespace App\Filament\Resources\CompanyTypes\Pages;
+
+use App\Filament\Resources\CompanyTypes\CompanyTypeResource;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\RestoreAction;
+use Filament\Resources\Pages\EditRecord;
+
+class EditCompanyType extends EditRecord
+{
+    protected static string $resource = CompanyTypeResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            DeleteAction::make(),
+            ForceDeleteAction::make(),
+            RestoreAction::make(),
+        ];
+    }
+}
