@@ -19,6 +19,10 @@ class ProductCategoryExporter extends Exporter
                 ->label('Parent ID'),
             ExportColumn::make('name')
                 ->label('Name'),
+            ExportColumn::make('slug')
+                ->label('Slug'),
+            ExportColumn::make('id_name')
+                ->label('ID Name'),
             ExportColumn::make('unspsc')
                 ->label('UNSPSC'),
         ];

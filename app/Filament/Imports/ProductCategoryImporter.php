@@ -15,18 +15,38 @@ class ProductCategoryImporter extends Importer
     public static function getColumns(): array
     {
         return [
-            ImportColumn::make('parent_id')
-                ->label('Parent ID'),
             ImportColumn::make('name')
                 ->label('Name'),
+            ImportColumn::make('id_name')
+                ->label('ID Name'),
             ImportColumn::make('unspsc')
                 ->label('UNSPSC'),
+            ImportColumn::make('parent')
+                ->label('parent')
+                ->relationship(resolveUsing: ['name', 'unspsc']),
         ];
     }
 
     public function resolveRecord(): ProductCategory
     {
         return new ProductCategory;
+    }
+
+    public function getValidationAttributes(): array
+    {
+        return [
+            'name' => 'Name',
+            'id_name' => 'ID Name',
+            'unspsc' => 'UNSPSC',
+            'parent' => 'Parent',
+        ];
+    }
+
+    public function getValidationMessages(): array
+    {
+        return [
+            'name.required' => 'The Name field is required.',
+        ];
     }
 
     public static function getCompletedNotificationBody(Import $import): string
