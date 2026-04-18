@@ -18,9 +18,13 @@ class AccountForm
                 TextInput::make('name')
                     ->required(),
                 Select::make('parent_id')
-                    ->relationship('parent', 'name'),
+                    ->relationship('parent', 'name')
+                    ->searchable()
+                    ->preload(true),
                 Select::make('account_type_id')
-                    ->relationship('accountType', 'name'),
+                    ->relationship('accountType', 'name')
+                    ->searchable()
+                    ->preload(true),
                 TextInput::make('normal_balance')
                     ->required(),
                 Toggle::make('is_postable')

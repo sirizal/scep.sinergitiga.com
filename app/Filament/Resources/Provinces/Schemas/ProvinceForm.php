@@ -15,6 +15,7 @@ class ProvinceForm
                 Select::make('country_id')
                     ->relationship('country', 'name')
                     ->searchable()
+                    ->preload(true)
                     ->required(),
                 TextInput::make('name')
                     ->required(),

@@ -2,23 +2,27 @@
 
 namespace App\Filament\Imports;
 
-use App\Models\Vendor;
+use App\Models\ShipAddress;
 use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
 use Illuminate\Support\Number;
 
-class VendorImporter extends Importer
+class ShipAddressImporter extends Importer
 {
-    protected static ?string $model = Vendor::class;
+    protected static ?string $model = ShipAddress::class;
 
     public static function getColumns(): array
     {
         return [
+            ImportColumn::make('customer_id')
+                ->label('Customer ID')
+                ->requiredMapping()
+                ->rules(['required', 'exists:customers,id']),
             ImportColumn::make('name')
                 ->label('Name')
                 ->requiredMapping()
-                ->rules(['required', 'max:255']),
+                ->rules(['required', 'max:100']),
             ImportColumn::make('address')
                 ->label('Address'),
             ImportColumn::make('country_id')
@@ -38,40 +42,23 @@ class VendorImporter extends Importer
                 ->numeric(),
             ImportColumn::make('postal_code')
                 ->label('Postal Code'),
-            ImportColumn::make('phone_no')
-                ->label('Phone No'),
-            ImportColumn::make('fax_no')
-                ->label('Fax No'),
-            ImportColumn::make('email')
-                ->label('Email'),
-            ImportColumn::make('website')
-                ->label('Website'),
             ImportColumn::make('contact_name')
                 ->label('Contact Name'),
-            ImportColumn::make('payment_term_id')
-                ->label('Payment Term ID')
-                ->numeric(),
-            ImportColumn::make('credit_limit')
-                ->label('Credit Limit')
-                ->numeric(),
-            ImportColumn::make('tax_id')
-                ->label('Tax ID'),
-            ImportColumn::make('bussiness_license_id')
-                ->label('Business License ID'),
-            ImportColumn::make('is_active')
-                ->label('Is Active')
-                ->boolean(),
+            ImportColumn::make('phone_no')
+                ->label('Phone No'),
+            ImportColumn::make('email')
+                ->label('Email'),
         ];
     }
 
-    public function resolveRecord(): Vendor
+    public function resolveRecord(): ShipAddress
     {
-        return new Vendor;
+        return new ShipAddress;
     }
 
     public static function getCompletedNotificationBody(Import $import): string
     {
-        $body = 'Your vendor import has completed and '.Number::format($import->successful_rows).' '.str('row')->plural($import->successful_rows).' imported.';
+        $body = 'Your shipping address import has completed and '.Number::format($import->successful_rows).' '.str('row')->plural($import->successful_rows).' imported.';
 
         if ($failedRowsCount = $import->getFailedRowsCount()) {
             $body .= ' '.Number::format($failedRowsCount).' '.str('row')->plural($failedRowsCount).' failed to import.';

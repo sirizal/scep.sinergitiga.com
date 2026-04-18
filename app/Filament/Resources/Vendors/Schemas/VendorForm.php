@@ -2,8 +2,13 @@
 
 namespace App\Filament\Resources\Vendors\Schemas;
 
+use App\Models\District;
+use App\Models\Province;
+use App\Models\SubDistrict;
+use App\Models\Village;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
 class VendorForm
@@ -13,25 +18,42 @@ class VendorForm
         return $schema
             ->components([
                 TextInput::make('code')
-                    ->required()
-                    ->maxLength(10),
+                    ->readOnly()
+                    ->visible(fn (?string $operation): bool => $operation === 'edit'),
                 TextInput::make('name')
                     ->required()
                     ->maxLength(255),
                 TextInput::make('address')
                     ->columnSpanFull(),
                 Select::make('country_id')
-                    ->relationship('country', 'name'),
+                    ->relationship('country', 'name')
+                    ->searchable()
+                    ->preload(true)
+                    ->live(),
                 Select::make('province_id')
-                    ->relationship('province', 'name'),
+                    ->options(fn (Get $get): array => $get('country_id')
+                        ? Province::where('country_id', $get('country_id'))->pluck('name', 'id')->toArray()
+                        : [])
+                    ->live(),
                 Select::make('district_id')
-                    ->relationship('district', 'name'),
+                    ->options(fn (Get $get): array => $get('province_id')
+                        ? District::where('province_id', $get('province_id'))->pluck('name', 'id')->toArray()
+                        : []),
                 Select::make('sub_district_id')
-                    ->relationship('subDistrict', 'name'),
+                    ->options(fn (Get $get): array => $get('district_id')
+                        ? SubDistrict::where('district_id', $get('district_id'))->pluck('name', 'id')->toArray()
+                        : []),
                 Select::make('village_id')
-                    ->relationship('village', 'name'),
+                    ->options(fn (Get $get): array => $get('sub_district_id')
+                        ? Village::where('sub_district_id', $get('sub_district_id'))->pluck('name', 'id')->toArray()
+                        : [])
+                    ->afterStateUpdated(fn (TextInput $component, Get $get) => $component
+                        ->getContainer()
+                        ->getComponent('postalCodeField')
+                        ->fill($get('village_id') ? Village::find($get('village_id'))?->postal_code : null)),
                 TextInput::make('postal_code')
-                    ->maxLength(10),
+                    ->maxLength(10)
+                    ->key('postalCodeField'),
                 TextInput::make('phone_no')
                     ->maxLength(20),
                 TextInput::make('fax_no')
@@ -43,7 +65,9 @@ class VendorForm
                 TextInput::make('contact_name')
                     ->maxLength(50),
                 Select::make('payment_term_id')
-                    ->relationship('paymentTerm', 'name'),
+                    ->relationship('paymentTerm', 'name')
+                    ->searchable()
+                    ->preload(true),
                 TextInput::make('credit_limit')
                     ->numeric()
                     ->default(0),

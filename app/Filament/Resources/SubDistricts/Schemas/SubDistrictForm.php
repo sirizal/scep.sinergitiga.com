@@ -15,6 +15,7 @@ class SubDistrictForm
                 Select::make('district_id')
                     ->relationship('district', 'name')
                     ->searchable()
+                    ->preload(true)
                     ->required(),
                 TextInput::make('name')
                     ->required(),

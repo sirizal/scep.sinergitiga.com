@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Customers\Schemas;
+namespace App\Filament\Resources\ShipAddresses\Schemas;
 
 use App\Models\District;
 use App\Models\Province;
@@ -11,7 +11,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
-class CustomerForm
+class ShipAddressForm
 {
     public static function configure(Schema $schema): Schema
     {
@@ -22,7 +22,7 @@ class CustomerForm
                     ->visible(fn (?string $operation): bool => $operation === 'edit'),
                 TextInput::make('name')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(100),
                 TextInput::make('address')
                     ->columnSpanFull(),
                 Select::make('country_id')
@@ -54,26 +54,11 @@ class CustomerForm
                 TextInput::make('postal_code')
                     ->maxLength(10)
                     ->key('postalCodeField'),
-                TextInput::make('phone_no')
-                    ->maxLength(20),
-                TextInput::make('fax_no')
-                    ->maxLength(20),
-                TextInput::make('email')
-                    ->maxLength(255),
-                TextInput::make('website')
-                    ->maxLength(255),
                 TextInput::make('contact_name')
+                    ->maxLength(100),
+                TextInput::make('phone_no')
                     ->maxLength(50),
-                Select::make('payment_term_id')
-                    ->relationship('paymentTerm', 'name')
-                    ->searchable()
-                    ->preload(true),
-                TextInput::make('credit_limit')
-                    ->numeric()
-                    ->default(0),
-                TextInput::make('tax_id')
-                    ->maxLength(50),
-                TextInput::make('bussiness_license_id')
+                TextInput::make('email')
                     ->maxLength(50),
             ]);
     }

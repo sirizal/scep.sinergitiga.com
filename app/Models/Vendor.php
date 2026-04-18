@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class Vendor extends Model
 {
@@ -65,5 +66,32 @@ class Vendor extends Model
     public function paymentTerm(): BelongsTo
     {
         return $this->belongsTo(PaymentTerm::class);
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (Vendor $vendor) {
+            if (empty($vendor->code)) {
+                $vendor->code = self::generateCode();
+            }
+        });
+    }
+
+    public static function generateCode(): string
+    {
+        return DB::transaction(function () {
+            $lastRecord = self::lockForUpdate()
+                ->orderByDesc('id')
+                ->first();
+
+            $lastNumber = 0;
+            if ($lastRecord && preg_match('/^VE(\d+)$/', $lastRecord->code, $matches)) {
+                $lastNumber = (int) $matches[1];
+            }
+
+            $newNumber = $lastNumber + 1;
+
+            return 'VE'.str_pad($newNumber, 5, '0', STR_PAD_LEFT);
+        });
     }
 }

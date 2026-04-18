@@ -15,10 +15,6 @@ class CustomerImporter extends Importer
     public static function getColumns(): array
     {
         return [
-            ImportColumn::make('code')
-                ->label('Code')
-                ->requiredMapping()
-                ->rules(['required', 'max:10']),
             ImportColumn::make('name')
                 ->label('Name')
                 ->requiredMapping()

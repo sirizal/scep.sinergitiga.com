@@ -16,6 +16,8 @@ class DepartementForm
                     ->required(),
                 Select::make('company_id')
                     ->relationship('company', 'name')
+                    ->searchable()
+                    ->preload(true)
                     ->required(),
             ]);
     }

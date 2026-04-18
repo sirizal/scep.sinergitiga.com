@@ -4,14 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 
-class Customer extends Model
+class ShipAddress extends Model
 {
-    use SoftDeletes;
-
     protected $fillable = [
         'code',
         'name',
@@ -22,22 +18,16 @@ class Customer extends Model
         'sub_district_id',
         'village_id',
         'postal_code',
-        'phone_no',
-        'fax_no',
-        'email',
-        'website',
         'contact_name',
-        'payment_term_id',
-        'credit_limit',
-        'tax_id',
-        'bussiness_license_id',
-        'is_active',
+        'phone_no',
+        'email',
+        'customer_id',
     ];
 
-    protected $casts = [
-        'is_active' => 'boolean',
-        'credit_limit' => 'decimal:2',
-    ];
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
+    }
 
     public function country(): BelongsTo
     {
@@ -64,21 +54,11 @@ class Customer extends Model
         return $this->belongsTo(Village::class);
     }
 
-    public function paymentTerm(): BelongsTo
-    {
-        return $this->belongsTo(PaymentTerm::class);
-    }
-
-    public function shipAddresses(): HasMany
-    {
-        return $this->hasMany(ShipAddress::class);
-    }
-
     protected static function booted(): void
     {
-        static::creating(function (Customer $customer) {
-            if (empty($customer->code)) {
-                $customer->code = self::generateCode();
+        static::creating(function (ShipAddress $shipAddress) {
+            if (empty($shipAddress->code)) {
+                $shipAddress->code = self::generateCode();
             }
         });
     }
@@ -91,13 +71,13 @@ class Customer extends Model
                 ->first();
 
             $lastNumber = 0;
-            if ($lastRecord && preg_match('/^CU(\d+)$/', $lastRecord->code, $matches)) {
+            if ($lastRecord && preg_match('/^SA(\d+)$/', $lastRecord->code, $matches)) {
                 $lastNumber = (int) $matches[1];
             }
 
             $newNumber = $lastNumber + 1;
 
-            return 'CU'.str_pad($newNumber, 5, '0', STR_PAD_LEFT);
+            return 'SA'.str_pad($newNumber, 5, '0', STR_PAD_LEFT);
         });
     }
 }

@@ -33,6 +33,7 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::Amber,
             ])
             ->navigationGroups([
+                NavigationGroup::make('Master Product'),
                 NavigationGroup::make('Company Data'),
                 NavigationGroup::make('Accounting'),
                 NavigationGroup::make('Settings'),

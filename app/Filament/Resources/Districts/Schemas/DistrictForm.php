@@ -15,6 +15,7 @@ class DistrictForm
                 Select::make('province_id')
                     ->relationship('province', 'name')
                     ->searchable()
+                    ->preload(true)
                     ->required(),
                 TextInput::make('name')
                     ->required(),
