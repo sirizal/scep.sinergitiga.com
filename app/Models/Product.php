@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -18,6 +19,7 @@ class Product extends Model implements HasMedia
 
     protected $fillable = [
         'sku',
+        'slug',
         'name',
         'description',
         'variant_code',
@@ -46,8 +48,6 @@ class Product extends Model implements HasMedia
     {
         $this->addMediaCollection('images')
             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp'])
-            ->multiple()
-            ->maxFiles(10)
             ->withResponsiveImages();
     }
 
@@ -56,7 +56,7 @@ class Product extends Model implements HasMedia
         $this->addMediaConversion('thumb')
             ->width(150)
             ->height(150)
-            ->fit(Fit::Cover)
+            ->fit(Fit::Crop)
             ->format('webp')
             ->queued();
 
@@ -96,6 +96,10 @@ class Product extends Model implements HasMedia
             if (empty($product->sku)) {
                 $product->sku = self::generateSku();
             }
+
+            if (empty($product->slug)) {
+                $product->slug = self::generateSlug($product->name);
+            }
         });
 
         static::created(function (Product $product) {
@@ -130,5 +134,10 @@ class Product extends Model implements HasMedia
 
             return 'SKU'.str_pad($newNumber, 6, '0', STR_PAD_LEFT);
         });
+    }
+
+    public static function generateSlug(string $name): string
+    {
+        return Str::slug($name);
     }
 }

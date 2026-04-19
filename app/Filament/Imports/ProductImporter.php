@@ -18,6 +18,9 @@ class ProductImporter extends Importer
             ImportColumn::make('name')
                 ->label('Name')
                 ->required(),
+            ImportColumn::make('slug')
+                ->label('Slug')
+                ->nullable(),
             ImportColumn::make('description')
                 ->label('Description'),
             ImportColumn::make('variant_code')

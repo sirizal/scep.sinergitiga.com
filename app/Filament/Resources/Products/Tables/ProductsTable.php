@@ -32,6 +32,9 @@ class ProductsTable
                 TextColumn::make('sku')
                     ->label('SKU')
                     ->searchable(),
+                TextColumn::make('slug')
+                    ->label('Slug')
+                    ->searchable(),
                 TextColumn::make('name')
                     ->label('Name')
                     ->searchable(),

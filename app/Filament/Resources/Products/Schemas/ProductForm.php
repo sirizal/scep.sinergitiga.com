@@ -19,6 +19,10 @@ class ProductForm
                     ->label('SKU')
                     ->readonly()
                     ->visible(fn (string $operation): bool => $operation === 'edit'),
+                TextInput::make('slug')
+                    ->label('Slug')
+                    ->readonly()
+                    ->visible(fn (string $operation): bool => $operation === 'edit'),
                 TextInput::make('name')
                     ->required()
                     ->label('Name'),
@@ -30,7 +34,6 @@ class ProductForm
                     ->collection('images')
                     ->image()
                     ->multiple()
-                    ->maxFiles(10)
                     ->reorderable(),
                 TextInput::make('variant_code')
                     ->label('Variant Code'),
@@ -46,6 +49,7 @@ class ProductForm
                     ->relationship('uom', 'name')
                     ->required()
                     ->searchable()
+                    ->preload()
                     ->placeholder('Select UOM'),
                 TextInput::make('customer_product_code')
                     ->label('Customer Product Code'),

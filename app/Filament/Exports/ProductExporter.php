@@ -17,6 +17,8 @@ class ProductExporter extends Exporter
         return [
             ExportColumn::make('sku')
                 ->label('SKU'),
+            ExportColumn::make('slug')
+                ->label('Slug'),
             ExportColumn::make('name')
                 ->label('Name'),
             ExportColumn::make('description')
