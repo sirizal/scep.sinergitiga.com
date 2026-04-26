@@ -23,13 +23,24 @@ class ProductCategory extends Model
     protected static function booted(): void
     {
         static::creating(function (ProductCategory $category) {
-            $category->slug = static::generateUniqueSlug($category->name);
+            if (empty($category->slug)) {
+                $category->slug = static::generateUniqueSlug($category->name);
+            }
         });
     }
 
     private static function generateUniqueSlug(string $name): string
     {
-        return Str::slug($name);
+        $slug = Str::slug($name);
+        $originalSlug = $slug;
+        $counter = 1;
+
+        while (static::where('slug', $slug)->exists()) {
+            $slug = $originalSlug.'-'.$counter;
+            $counter++;
+        }
+
+        return $slug;
     }
 
     public function parent(): BelongsTo

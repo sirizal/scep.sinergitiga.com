@@ -12,9 +12,9 @@ use Filament\Actions\ExportBulkAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\ImportAction;
 use Filament\Actions\RestoreBulkAction;
-use Filament\Tables\Columns\BooleanColumn;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
@@ -31,29 +31,30 @@ class ProductsTable
                     ->limit(1),
                 TextColumn::make('sku')
                     ->label('SKU')
-                    ->searchable(),
-                TextColumn::make('slug')
-                    ->label('Slug')
-                    ->searchable(),
+                    ->searchable()
+                    ->wrap(),
                 TextColumn::make('name')
                     ->label('Name')
-                    ->searchable(),
-                TextColumn::make('description')
-                    ->label('Description')
-                    ->searchable(),
+                    ->searchable()
+                    ->wrap(),
                 TextColumn::make('variant_code')
                     ->label('Variant Code')
-                    ->searchable(),
+                    ->searchable()
+                    ->wrap(),
                 TextColumn::make('productCategory.name')
                     ->label('Category')
-                    ->searchable(),
+                    ->searchable()
+                    ->wrap(),
                 TextColumn::make('uom.name')
                     ->label('UOM')
-                    ->searchable(),
+                    ->searchable()
+                    ->wrap(),
                 TextColumn::make('customer_product_code')
                     ->label('Customer Product Code')
-                    ->searchable(),
-                BooleanColumn::make('is_active')
+                    ->searchable()
+                    ->wrapHeader()
+                    ->wrap(),
+                ToggleColumn::make('is_active')
                     ->label('Active'),
                 TextColumn::make('created_at')
                     ->dateTime()

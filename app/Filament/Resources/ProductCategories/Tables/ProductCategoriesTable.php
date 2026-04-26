@@ -24,19 +24,20 @@ class ProductCategoriesTable
             ->columns([
                 TextColumn::make('parent.name')
                     ->label('Parent Category')
-                    ->searchable(),
+                    ->searchable()
+                    ->wrap(),
                 TextColumn::make('name')
                     ->label('Name')
-                    ->searchable(),
-                TextColumn::make('slug')
-                    ->label('Slug')
-                    ->searchable(),
+                    ->searchable()
+                    ->wrap(),
                 TextColumn::make('id_name')
                     ->label('ID Name')
-                    ->searchable(),
+                    ->searchable()
+                    ->wrap(),
                 TextColumn::make('unspsc')
                     ->label('UNSPSC')
-                    ->searchable(),
+                    ->searchable()
+                    ->wrap(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

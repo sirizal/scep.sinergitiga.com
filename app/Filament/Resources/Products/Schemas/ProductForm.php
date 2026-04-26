@@ -43,7 +43,8 @@ class ProductForm
                     ->nullable()
                     ->searchable()
                     ->preload()
-                    ->placeholder('Select category'),
+                    ->placeholder('Select category')
+                    ->visible(fn (string $operation): bool => $operation === 'edit'),
                 Select::make('uom_id')
                     ->label('UOM')
                     ->relationship('uom', 'name')

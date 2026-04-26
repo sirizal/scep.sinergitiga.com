@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ProductCategoryFinder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -109,6 +110,13 @@ class Product extends Model implements HasMedia
                 'convert_uom_id' => $product->uom_id,
                 'conversion_qty' => 1,
             ]);
+
+            if (empty($product->product_category_id)) {
+                $categoryId = app(ProductCategoryFinder::class)->findForProduct($product->name);
+                if ($categoryId) {
+                    $product->update(['product_category_id' => $categoryId]);
+                }
+            }
         });
 
         static::saved(function (Product $product) {
