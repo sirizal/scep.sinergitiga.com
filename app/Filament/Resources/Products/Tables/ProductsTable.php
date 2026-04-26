@@ -32,22 +32,27 @@ class ProductsTable
                 TextColumn::make('sku')
                     ->label('SKU')
                     ->searchable()
+                    ->wrapHeader()
                     ->wrap(),
                 TextColumn::make('name')
                     ->label('Name')
                     ->searchable()
+                    ->wrapHeader()
                     ->wrap(),
                 TextColumn::make('variant_code')
                     ->label('Variant Code')
                     ->searchable()
+                    ->wrapHeader()
                     ->wrap(),
                 TextColumn::make('productCategory.name')
                     ->label('Category')
                     ->searchable()
+                    ->wrapHeader()
                     ->wrap(),
                 TextColumn::make('uom.name')
                     ->label('UOM')
                     ->searchable()
+                    ->wrapHeader()
                     ->wrap(),
                 TextColumn::make('customer_product_code')
                     ->label('Customer Product Code')
