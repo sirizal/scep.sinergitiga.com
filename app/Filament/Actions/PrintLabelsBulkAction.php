@@ -14,13 +14,11 @@ class PrintLabelsBulkAction
             ->icon('heroicon-o-printer')
             ->color('info')
             ->deselectRecordsAfterCompletion()
-            ->url(fn (Collection $records): string => route('locations.print-labels', [
-                'ids' => implode(',', $records->pluck('id')->all()),
-            ]))
-            ->openUrlInNewTab()
-            ->modalHeading('Print Location Labels')
-            ->modalDescription(fn (Collection $records): string => 
-                "You are about to print labels for {$records->count()} location(s).")
-            ->modalSubmitActionLabel('Print Labels');
+            ->action(function (Collection $records) {
+                $ids = implode(',', $records->pluck('id')->all());
+                
+                return redirect()->to(route('locations.print-labels', ['ids' => $ids]));
+            })
+            ->requiresConfirmation();
     }
 }
