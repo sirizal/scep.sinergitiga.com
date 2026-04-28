@@ -13,7 +13,7 @@ use Spatie\MediaLibrary\MediaCollections\Exceptions\FileDoesNotExist;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig;
 use Symfony\Component\DomCrawler\Crawler;
 
-#[Signature('app:create-product')]
+#[Signature('app:create-product {--truncate : Truncate products table before importing}')]
 #[Description('Create product from product_masters.csv for first time')]
 class CreateProduct extends Command
 {
@@ -31,6 +31,11 @@ class CreateProduct extends Command
             $this->error("CSV file not found at: {$this->csvPath}");
 
             return self::FAILURE;
+        }
+
+        if ($this->option('truncate')) {
+            $this->warn('Truncating products table...');
+            Product::query()->truncate();
         }
 
         $this->info('Reading product_masters.csv...');
@@ -96,11 +101,17 @@ class CreateProduct extends Command
             while (($data = fgetcsv($handle, 1000, ';')) !== false) {
                 if (! $header) {
                     $header = array_map('trim', $data);
+                    $header = array_map(fn ($h) => ltrim($h, "\xEF\xBB\xBF"), $header);
 
                     continue;
                 }
 
                 $row = array_combine($header, array_map('trim', $data));
+
+                if (! isset($row['name'])) {
+                    continue;
+                }
+
                 $rows[] = $row;
             }
             fclose($handle);
