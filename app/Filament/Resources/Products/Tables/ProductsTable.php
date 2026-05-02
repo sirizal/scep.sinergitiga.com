@@ -2,15 +2,14 @@
 
 namespace App\Filament\Resources\Products\Tables;
 
+use App\Filament\Actions\ImportProductsCsvAction;
 use App\Filament\Exports\ProductExporter;
-use App\Filament\Imports\ProductImporter;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportAction;
 use Filament\Actions\ExportBulkAction;
 use Filament\Actions\ForceDeleteBulkAction;
-use Filament\Actions\ImportAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -78,8 +77,7 @@ class ProductsTable
                 TrashedFilter::make(),
             ])
             ->headerActions([
-                ImportAction::make()
-                    ->importer(ProductImporter::class),
+                ImportProductsCsvAction::make('import-products-csv'),
                 ExportAction::make()
                     ->exporter(ProductExporter::class),
             ])

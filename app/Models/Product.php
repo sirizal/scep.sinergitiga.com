@@ -128,20 +128,18 @@ class Product extends Model implements HasMedia
 
     public static function generateSku(): string
     {
-        return DB::transaction(function () {
-            $lastRecord = self::lockForUpdate()
-                ->orderByDesc('id')
-                ->first();
+        $lastRecord = self::withTrashed()
+            ->orderByDesc('id')
+            ->first();
 
-            $lastNumber = 0;
-            if ($lastRecord && preg_match('/^SKU(\d+)$/', $lastRecord->sku, $matches)) {
-                $lastNumber = (int) $matches[1];
-            }
+        $lastNumber = 0;
+        if ($lastRecord && preg_match('/^SKU(\d+)$/', $lastRecord->sku, $matches)) {
+            $lastNumber = (int) $matches[1];
+        }
 
-            $newNumber = $lastNumber + 1;
+        $newNumber = $lastNumber + 1;
 
-            return 'SKU'.str_pad($newNumber, 6, '0', STR_PAD_LEFT);
-        });
+        return 'SKU'.str_pad($newNumber, 6, '0', STR_PAD_LEFT);
     }
 
     public static function generateSlug(string $name): string

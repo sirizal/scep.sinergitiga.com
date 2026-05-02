@@ -17,19 +17,17 @@ class ProductImporter extends Importer
         return [
             ImportColumn::make('name')
                 ->label('Name')
-                ->required(),
-            ImportColumn::make('slug')
-                ->label('Slug')
-                ->nullable(),
+                ->requiredMapping()
+                ->rules(['required', 'max:255']),
             ImportColumn::make('description')
                 ->label('Description'),
             ImportColumn::make('variant_code')
                 ->label('Variant Code'),
-            ImportColumn::make('product_category_id')
-                ->label('Product Category ID'),
-            ImportColumn::make('uom_id')
-                ->label('UOM ID')
-                ->required(),
+            ImportColumn::make('uom')
+                ->label('UOM')
+                ->relationship(resolveUsing: 'code')
+                ->requiredMapping()
+                ->rules(['required']),
             ImportColumn::make('customer_product_code')
                 ->label('Customer Product Code'),
             ImportColumn::make('is_active')
