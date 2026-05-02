@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Product;
+use App\Models\ProductUom;
 use App\Models\Uom;
 use App\Services\ImageFinder;
 use Illuminate\Console\Attributes\Description;
@@ -11,6 +12,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileDoesNotExist;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 #[Signature('app:create-product {--truncate : Truncate products table before importing}')]
 #[Description('Create product from product_masters.csv for first time')]
@@ -33,7 +35,11 @@ class CreateProduct extends Command
         }
 
         if ($this->option('truncate')) {
-            $this->warn('Truncating products table...');
+            $this->warn('Truncating products and related data...');
+
+            $this->deleteProductMedia();
+
+            ProductUom::query()->truncate();
             Product::query()->truncate();
         }
 
@@ -88,6 +94,17 @@ class CreateProduct extends Command
         $this->info(sprintf('Import completed: %d created, %d skipped.', $created, $skipped));
 
         return self::SUCCESS;
+    }
+
+    protected function deleteProductMedia(): void
+    {
+        $products = Product::withTrashed()->get();
+
+        foreach ($products as $product) {
+            $product->clearMediaCollection('images');
+        }
+
+        Media::query()->truncate();
     }
 
     protected function readCsv(): array
