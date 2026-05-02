@@ -12,6 +12,11 @@ class ProductUom extends Model
         'uom_id',
         'convert_uom_id',
         'conversion_qty',
+        'width',
+        'deep',
+        'height',
+        'volume',
+        'weight',
     ];
 
     public function product(): BelongsTo

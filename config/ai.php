@@ -142,6 +142,13 @@ return [
             'key' => env('XAI_API_KEY'),
             'url' => env('XAI_URL', 'https://api.x.ai/v1'),
         ],
+
+        'sumopod' => [
+            'driver' => 'openai',
+            'key' => env('AI_KEY'),
+            'url' => env('SUMOPOD_URL', 'https://ai.sumopod.com'),
+            'model' => env('AI_MODEL', 'glm-5.1'),
+        ],
     ],
 
 ];

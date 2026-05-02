@@ -146,6 +146,15 @@ class Product extends Model implements HasMedia
 
     public static function generateSlug(string $name): string
     {
-        return Str::slug($name);
+        $slug = Str::slug($name);
+        $originalSlug = $slug;
+        $counter = 1;
+
+        while (self::where('slug', $slug)->withTrashed()->exists()) {
+            $slug = $originalSlug.'-'.$counter;
+            $counter++;
+        }
+
+        return $slug;
     }
 }

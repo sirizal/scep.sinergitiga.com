@@ -6,6 +6,7 @@ use App\Models\ProductUom;
 use App\Models\Uom;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -60,6 +61,38 @@ class ProductUomRelationManager extends RelationManager
                     ->numeric()
                     ->default(1)
                     ->required(),
+                TextInput::make('width')
+                    ->label('Width (cm)')
+                    ->numeric()
+                    ->default(0)
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(fn ($state, callable $set, callable $get) => $set('volume', round(($state ?? 0) * ($get('deep') ?? 0) * ($get('height') ?? 0) / 1000000, 6)))
+                    ->required(),
+                TextInput::make('deep')
+                    ->label('Deep (cm)')
+                    ->numeric()
+                    ->default(0)
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(fn ($state, callable $set, callable $get) => $set('volume', round(($get('width') ?? 0) * ($state ?? 0) * ($get('height') ?? 0) / 1000000, 6)))
+                    ->required(),
+                TextInput::make('height')
+                    ->label('Height (cm)')
+                    ->numeric()
+                    ->default(0)
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(fn ($state, callable $set, callable $get) => $set('volume', round(($get('width') ?? 0) * ($get('deep') ?? 0) * ($state ?? 0) / 1000000, 6)))
+                    ->required(),
+                TextInput::make('volume')
+                    ->label('Volume (m³)')
+                    ->numeric()
+                    ->default(0)
+                    ->readOnly()
+                    ->required(),
+                TextInput::make('weight')
+                    ->label('Weight (kg)')
+                    ->numeric()
+                    ->default(0)
+                    ->required(),
             ]);
     }
 
@@ -85,6 +118,21 @@ class ProductUomRelationManager extends RelationManager
                 TextColumn::make('conversion_qty')
                     ->label('Conversion Qty')
                     ->numeric(),
+                TextColumn::make('width')
+                    ->label('Width (cm)')
+                    ->numeric(),
+                TextColumn::make('deep')
+                    ->label('Deep (cm)')
+                    ->numeric(),
+                TextColumn::make('height')
+                    ->label('Height (cm)')
+                    ->numeric(),
+                TextColumn::make('volume')
+                    ->label('Volume (m³)')
+                    ->numeric(),
+                TextColumn::make('weight')
+                    ->label('Weight (kg)')
+                    ->numeric(),
             ])
             ->headerActions([
                 CreateAction::make()
@@ -98,9 +146,59 @@ class ProductUomRelationManager extends RelationManager
                     }),
             ])
             ->recordActions([
-                /* EditAction::make()
+                EditAction::make()
                     ->modal()
-                    ->hidden(fn (ProductUom $record) => $record->id === $record->product->productUoms()->oldest()->first()?->id), */
+                    ->form([
+                        Select::make('uom_id')
+                            ->label('UOM')
+                            ->options(fn () => Uom::pluck('name', 'id'))
+                            ->disabled(fn (ProductUom $record) => $record->uom_id === $record->product->uom_id)
+                            ->required()
+                            ->searchable(),
+                        Select::make('convert_uom_id')
+                            ->label('Convert To UOM')
+                            ->options(fn () => Uom::pluck('name', 'id'))
+                            ->disabled(fn (ProductUom $record) => $record->uom_id === $record->product->uom_id)
+                            ->required(),
+                        TextInput::make('conversion_qty')
+                            ->label('Conversion Qty')
+                            ->numeric()
+                            ->disabled(fn (ProductUom $record) => $record->uom_id === $record->product->uom_id)
+                            ->default(1)
+                            ->required(),
+                        TextInput::make('width')
+                            ->label('Width (cm)')
+                            ->numeric()
+                            ->default(0)
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(fn ($state, callable $set, callable $get) => $set('volume', round(($state ?? 0) * ($get('deep') ?? 0) * ($get('height') ?? 0) / 1000000, 6)))
+                            ->required(),
+                        TextInput::make('deep')
+                            ->label('Deep (cm)')
+                            ->numeric()
+                            ->default(0)
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(fn ($state, callable $set, callable $get) => $set('volume', round(($get('width') ?? 0) * ($state ?? 0) * ($get('height') ?? 0) / 1000000, 6)))
+                            ->required(),
+                        TextInput::make('height')
+                            ->label('Height (cm)')
+                            ->numeric()
+                            ->default(0)
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(fn ($state, callable $set, callable $get) => $set('volume', round(($get('width') ?? 0) * ($get('deep') ?? 0) * ($state ?? 0) / 1000000, 6)))
+                            ->required(),
+                        TextInput::make('volume')
+                            ->label('Volume (m³)')
+                            ->numeric()
+                            ->default(0)
+                            ->readOnly()
+                            ->required(),
+                        TextInput::make('weight')
+                            ->label('Weight (kg)')
+                            ->numeric()
+                            ->default(0)
+                            ->required(),
+                    ]),
                 DeleteAction::make()
                     ->hidden(fn (ProductUom $record) => $record->id === $record->product->productUoms()->oldest()->first()?->id),
             ])

@@ -4,14 +4,13 @@ namespace App\Console\Commands;
 
 use App\Models\Product;
 use App\Models\Uom;
+use App\Services\ImageFinder;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileDoesNotExist;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileIsTooBig;
-use Symfony\Component\DomCrawler\Crawler;
 
 #[Signature('app:create-product {--truncate : Truncate products table before importing}')]
 #[Description('Create product from product_masters.csv for first time')]
@@ -19,14 +18,14 @@ class CreateProduct extends Command
 {
     protected string $csvPath = 'database/seeders/product_masters.csv';
 
-    protected string $imageDisk = 'public';
-
-    protected string $imagePath = 'products';
-
     protected int $imageDownloadTimeout = 10;
+
+    protected ImageFinder $imageFinder;
 
     public function handle(): int
     {
+        $this->imageFinder = new ImageFinder;
+
         if (! file_exists(base_path($this->csvPath))) {
             $this->error("CSV file not found at: {$this->csvPath}");
 
@@ -122,7 +121,7 @@ class CreateProduct extends Command
 
     protected function attachImage(Product $product): void
     {
-        $imageUrl = $this->searchImageOnWeb($product->name);
+        $imageUrl = $this->imageFinder->searchImage($product->name);
 
         if (! $imageUrl) {
             $this->warn(sprintf('No image found for: %s', $product->name));
@@ -137,64 +136,9 @@ class CreateProduct extends Command
         }
     }
 
-    protected function searchImageOnWeb(string $productName): ?string
-    {
-        $searchQuery = urlencode($productName.' product');
-        $searchUrl = "https://www.google.com/search?q={$searchQuery}&tbm=isch";
-
-        try {
-            $response = Http::timeout($this->imageDownloadTimeout)
-                ->withHeaders([
-                    'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                    'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                    'Accept-Language' => 'en-US,en;q=0.5',
-                ])
-                ->get($searchUrl);
-
-            if (! $response->successful()) {
-                return null;
-            }
-
-            return $this->extractImageUrl($response->body());
-        } catch (\Exception $e) {
-            $this->warn(sprintf('Image search failed for %s: %s', $productName, $e->getMessage()));
-
-            return null;
-        }
-    }
-
-    protected function extractImageUrl(string $html): ?string
-    {
-        try {
-            $crawler = new Crawler($html);
-
-            $image = $crawler->filter('img')->first();
-
-            if ($image->count() > 0) {
-                $src = $image->attr('src') ?? $image->attr('data-src');
-
-                if ($src && str_starts_with($src, 'http')) {
-                    return $src;
-                }
-            }
-
-            if (preg_match('/"ou":"(https?:\/\/[^"]+\.(?:jpg|jpeg|png|webp|gif))"/i', $html, $matches)) {
-                return $matches[1];
-            }
-
-            if (preg_match('/https?:\/\/[^"\'<>\s]+\.(?:jpg|jpeg|png|webp|gif)/i', $html, $matches)) {
-                return $matches[0];
-            }
-        } catch (\Exception $e) {
-            return null;
-        }
-
-        return null;
-    }
-
     protected function downloadAndAttachImage(Product $product, string $imageUrl): void
     {
-        $tempPath = tempnam(sys_get_temp_dir(), 'product_img_').'.webp';
+        $tempPath = tempnam(sys_get_temp_dir(), 'product_img_');
 
         $response = Http::timeout($this->imageDownloadTimeout)
             ->withHeaders([
@@ -208,31 +152,44 @@ class CreateProduct extends Command
         }
 
         $mimeType = mime_content_type($tempPath);
+        $extensionMap = [
+            'image/jpeg' => '.jpg',
+            'image/png' => '.png',
+            'image/gif' => '.gif',
+            'image/webp' => '.webp',
+        ];
 
-        if (! in_array($mimeType, ['image/jpeg', 'image/png', 'image/gif', 'image/webp'])) {
+        if (! isset($extensionMap[$mimeType])) {
             unlink($tempPath);
 
             return;
         }
 
+        $newPath = $tempPath.$extensionMap[$mimeType];
+        rename($tempPath, $newPath);
+        $tempPath = $newPath;
+
         if ($mimeType !== 'image/webp') {
-            $this->convertToWebp($tempPath);
+            $webpPath = preg_replace('/\.(jpg|jpeg|png|gif)$/i', '.webp', $tempPath);
+            $this->convertToWebp($tempPath, $webpPath);
+            $tempPath = $webpPath;
         }
 
         $product->addMedia($tempPath)
             ->toMediaCollection('images');
 
-        unlink($tempPath);
+        if (file_exists($tempPath)) {
+            unlink($tempPath);
+        }
     }
 
-    protected function convertToWebp(string $imagePath): void
+    protected function convertToWebp(string $imagePath, string $webpPath): void
     {
         if (! extension_loaded('gd')) {
             return;
         }
 
         $mimeType = mime_content_type($imagePath);
-        $webpPath = preg_replace('/\.(jpg|jpeg|png|gif)$/i', '.webp', $imagePath);
 
         if ($mimeType === 'image/jpeg') {
             $source = imagecreatefromjpeg($imagePath);
@@ -248,50 +205,6 @@ class CreateProduct extends Command
             imagewebp($source, $webpPath, 80);
             imagedestroy($source);
             unlink($imagePath);
-            rename($webpPath, $imagePath);
         }
-    }
-
-    protected function findLocalImageByName(string $name): ?string
-    {
-        if (! Storage::disk($this->imageDisk)->exists($this->imagePath)) {
-            return null;
-        }
-
-        $files = Storage::disk($this->imageDisk)->files($this->imagePath);
-
-        $searchTerms = $this->extractSearchTerms($name);
-
-        foreach ($files as $file) {
-            if (! str_ends_with(strtolower($file), '.webp')) {
-                continue;
-            }
-
-            $fileName = basename($file, '.webp');
-
-            foreach ($searchTerms as $term) {
-                if (stripos($fileName, $term) !== false) {
-                    return basename($file);
-                }
-            }
-        }
-
-        return null;
-    }
-
-    protected function extractSearchTerms(string $name): array
-    {
-        $terms = [];
-
-        $terms[] = strtolower($name);
-
-        $words = explode(' ', strtolower($name));
-        foreach ($words as $word) {
-            if (strlen($word) > 3) {
-                $terms[] = $word;
-            }
-        }
-
-        return array_unique($terms);
     }
 }

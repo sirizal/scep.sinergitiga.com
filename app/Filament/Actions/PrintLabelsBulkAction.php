@@ -16,7 +16,7 @@ class PrintLabelsBulkAction
             ->deselectRecordsAfterCompletion()
             ->action(function (Collection $records) {
                 $ids = implode(',', $records->pluck('id')->all());
-                
+
                 return redirect()->to(route('locations.print-labels', ['ids' => $ids]));
             })
             ->requiresConfirmation();
